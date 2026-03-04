@@ -1,6 +1,7 @@
 package openweather
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 )
@@ -14,8 +15,29 @@ func New(apiKey string) *OpenWeatherClient {
 		apiKey: apiKey,
 	}
 }
-
-func (o OpenWeatherClient) Coordinates(city string) {
-	url := "http://api.openweathermap.org/geo/1.0/direct?q=%s&limit=5&appid=%s"
+func (o OpenWeatherClient) Coordinates(city string) (Coordinates, error) {
+	url := "https://api.openweathermap.org/geo/1.0/direct?q=%s&limit=5&appid=%s"
 	resp, err := http.Get(fmt.Sprintf(url, city, o.apiKey))
+	if err != nil {
+		return Coordinates{}, fmt.Errorf("error get coordinates: %w", err)
+	}
+
+	if resp.StatusCode != 200 {
+		return Coordinates{}, fmt.Errorf("error fail get coordinates: %d", resp.StatusCode)
+	}
+
+	var coordinatesResponse []CoordinatesResponse
+	err = json.NewDecoder(resp.Body).Decode(&coordinatesResponse)
+	if err != nil {
+		return Coordinates{}, fmt.Errorf("error unmarshal response: %w", err)
+	}
+
+	if len(coordinatesResponse) == 0 {
+		return Coordinates{}, fmt.Errorf("error empty coordinates")
+	}
+
+	return Coordinates{
+		Lat: coordinatesResponse[0].Lat,
+		Lon: coordinatesResponse[0].Lon,
+	}, nil
 }
