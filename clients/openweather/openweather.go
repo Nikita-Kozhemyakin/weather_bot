@@ -41,3 +41,7 @@ func (o OpenWeatherClient) Coordinates(city string) (Coordinates, error) {
 		Lon: coordinatesResponse[0].Lon,
 	}, nil
 }
+
+func (o OpenWeatherClient) Weather(lat, lon float64) (Weather, error) {
+	url := "https://api.openweathermap.org/weather"
+}
