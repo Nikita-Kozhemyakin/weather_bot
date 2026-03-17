@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"math"
 	"os"
 
 	"github.com/Nikita-Kozhemyakin/weatherbot/clients/openweather"
@@ -43,9 +44,18 @@ func main() {
 				continue
 			}
 
+			weather, _ := owClient.Weather(coordinates.Lat, coordinates.Lon)
+			if err != nil {
+				msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Не смогли получить погоду в его местности")
+				msg.ReplyToMessageID = update.Message.MessageID
+				bot.Send(msg)
+				continue
+			}
+
 			msg := tgbotapi.NewMessage(
 				update.Message.Chat.ID,
-				fmt.Sprintf("Долгота: %f, Широта: %f", coordinates.Lon, coordinates.Lat))
+				fmt.Sprintf("Температура в %s: %d°C", update.Message.Text, int(math.Round(weather.Temp))),
+			)
 			msg.ReplyToMessageID = update.Message.MessageID
 
 			bot.Send(msg)
